@@ -1,6 +1,5 @@
 package me.pedro.yeelight.yeelight
 
-import me.pedro.yeelight.yeelight.Command.GetProp.Properties
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
@@ -12,7 +11,7 @@ import java.io.Closeable
 import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
-fun <V> Flow<Properties>.filter(property: Command.GetProp.Property<V>): Flow<V> =
+fun <V> Flow<Properties>.filter(property: Property<V>): Flow<V> =
     mapNotNull { it[property] }
 
 class YeelightDevice(
@@ -66,7 +65,7 @@ class YeelightDevice(
                 .first { it.id == id }
             when (response) {
                 is SuccessResult -> command.parseResult(response.result)
-                is ErrorResult -> throw Exception(response.error.message)
+                is ErrorResult -> throw ResponseException(response.error)
             }
         }
 

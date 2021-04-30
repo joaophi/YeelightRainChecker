@@ -8,14 +8,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import me.pedro.yeelight.advisor.ApiAdvisor
 import me.pedro.yeelight.advisor.LocalDateAdapter
-import me.pedro.yeelight.yeelight.Command
-import me.pedro.yeelight.yeelight.Command.SetScene.Scene
-import me.pedro.yeelight.yeelight.Command.SetScene.Scene.CF.Action
-import me.pedro.yeelight.yeelight.Command.SetScene.Scene.CF.OnFinish
-import me.pedro.yeelight.yeelight.YeelightDevice
+import me.pedro.yeelight.yeelight.*
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.create
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -39,6 +36,7 @@ private val API_ADVISOR: ApiAdvisor = run {
 }
 
 suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
+    .filterNot { it.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY) }
     .map(LocalTime.of(6, 0)::atDate)
     .filter(LocalDateTime.now()::isBefore)
     .onEach { println("next: $it") }
@@ -67,10 +65,10 @@ suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
             val command = Command.SetScene(
                 Scene.CF(
                     count = 3,
-                    onFinish = OnFinish.POWER_OFF,
-                    Action.Color(duration = 5_000, color, brightness = 100),
-                    Action.Color(duration = 55_000, value = 0xFFFFFF, brightness = 100),
-                    Action.Sleep(duration = 180_000),
+                    onFinish = OnCFFinish.POWER_OFF,
+                    CFAction.Color(duration = 5_000, color, brightness = 100),
+                    CFAction.Color(duration = 55_000, value = 0xFFFFFF, brightness = 100),
+                    CFAction.Sleep(duration = 180_000),
                 )
             )
             yeelightDevice.sendCommand(command)

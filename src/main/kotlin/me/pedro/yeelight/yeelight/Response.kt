@@ -28,3 +28,7 @@ data class Error(
     val code: Int,
     val message: String,
 )
+
+data class ResponseException(val code: Int, override val message: String) : Throwable(message) {
+    constructor(error: Error) : this(error.code, error.message)
+}
