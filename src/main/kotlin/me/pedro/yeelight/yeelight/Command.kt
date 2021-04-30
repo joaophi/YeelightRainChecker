@@ -3,8 +3,19 @@ package me.pedro.yeelight.yeelight
 sealed class Command<R : Any>(val method: String) {
     open val params: List<Any> get() = emptyList()
 
-    @Suppress("UNCHECKED_CAST")
-    open fun parseResult(result: List<String>): R = (result.firstOrNull() == "ok") as R
+    @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
+    open fun parseResult(result: List<Any>): R = when (val first = result.firstOrNull()) {
+        is String -> first == "ok"
+        is Map<*, *> -> {
+            val map = first.mapValues { (it.value as Double).toInt() }
+            Cron(
+                type = CronType.values().first { it.value == map["type"]!! },
+                delay = map["delay"]!!,
+                mix = map["mix"]!!,
+            )
+        }
+        else -> throw Exception("cannot parse result: '$result'")
+    } as R
 
     data class CronAdd(val type: CronType = CronType.POWER_OFF, val minutes: Int) :
         Command<Boolean>(method = "cron_add") {
@@ -13,11 +24,6 @@ sealed class Command<R : Any>(val method: String) {
 
     data class CronGet(val type: CronType = CronType.POWER_OFF) : Command<Any>(method = "cron_get") {
         override val params: List<Any> get() = listOf(type.value)
-
-        override fun parseResult(result: List<String>): Any {
-            // TODO
-            return super.parseResult(result)
-        }
     }
 
     data class CronDel(val type: CronType = CronType.POWER_OFF) : Command<Boolean>(method = "cron_del") {
@@ -29,7 +35,8 @@ sealed class Command<R : Any>(val method: String) {
 
         override val params: List<Any> get() = props.map(Property<*>::name)
 
-        override fun parseResult(result: List<String>) = Properties(props.map(Property<*>::name).zip(result).toMap())
+        override fun parseResult(result: List<Any>) =
+            Properties(props.map(Property<*>::name).zip(result).toMap())
     }
 
     data class SetBright(val brightness: Int, val effect: Effect) : Command<Boolean>(method = "set_bright") {

@@ -30,6 +30,7 @@ class YeelightDevice(
 
     init {
         val moshi = Moshi.Builder()
+            .add(ErrorJsonAdapter)
             .add(ResponseJsonAdapter)
             .build()
         requestAdapter = moshi.adapter(Request::class.java)
@@ -50,7 +51,7 @@ class YeelightDevice(
 
     val properties = response
         .filterIsInstance<Notification>()
-        .map { notification -> Properties(notification.params.mapValues { it.value.toString() }) }
+        .map { notification -> Properties(notification.params) }
 
     suspend fun <R : Any> sendCommand(command: Command<R>): R =
         withContext(scope.coroutineContext) {
@@ -65,7 +66,7 @@ class YeelightDevice(
                 .first { it.id == id }
             when (response) {
                 is SuccessResult -> command.parseResult(response.result)
-                is ErrorResult -> throw ResponseException(response.error)
+                is ErrorResult -> throw response.error
             }
         }
 

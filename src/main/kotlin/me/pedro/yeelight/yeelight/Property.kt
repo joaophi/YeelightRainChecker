@@ -25,6 +25,6 @@ sealed class Property<T>(val name: String, val parse: (String) -> T) {
     object ActiveMode : Property<Boolean>(name = "active_mode", parse = String::toBoolean)
 }
 
-data class Properties(private val map: Map<String, String>) {
-    operator fun <T> get(property: Property<T>): T? = map[property.name]?.let(property.parse)
+data class Properties(private val map: Map<String, Any>) {
+    operator fun <T> get(property: Property<T>): T? = map[property.name]?.let(Any::toString)?.let(property.parse)
 }

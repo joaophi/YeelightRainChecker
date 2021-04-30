@@ -1,7 +1,5 @@
 package me.pedro.yeelight.yeelight
 
-import com.squareup.moshi.JsonClass
-
 sealed class Response
 
 data class Notification(
@@ -15,20 +13,10 @@ sealed class Result(
 
 data class SuccessResult(
     override val id: Int,
-    val result: List<String>,
+    val result: List<Any>,
 ) : Result(id)
 
 data class ErrorResult(
     override val id: Int,
     val error: Error,
 ) : Result(id)
-
-@JsonClass(generateAdapter = true)
-data class Error(
-    val code: Int,
-    val message: String,
-)
-
-data class ResponseException(val code: Int, override val message: String) : Throwable(message) {
-    constructor(error: Error) : this(error.code, error.message)
-}
