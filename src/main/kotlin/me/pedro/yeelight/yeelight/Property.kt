@@ -1,5 +1,8 @@
 package me.pedro.yeelight.yeelight
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
+
 sealed class Property<T>(val name: String, val parse: (String) -> T) {
     object Power : Property<Boolean>(name = "power", parse = String::toBoolean)
     object Bright : Property<Int>(name = "bright", parse = String::toInt)
@@ -28,3 +31,6 @@ sealed class Property<T>(val name: String, val parse: (String) -> T) {
 data class Properties(private val map: Map<String, Any>) {
     operator fun <T> get(property: Property<T>): T? = map[property.name]?.let(Any::toString)?.let(property.parse)
 }
+
+fun <V> Flow<Properties>.filter(property: Property<V>): Flow<V> =
+    mapNotNull { it[property] }

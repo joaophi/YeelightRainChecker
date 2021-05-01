@@ -22,6 +22,10 @@ private val API_TOKEN: String = System.getenv("API_TOKEN") ?: throw Exception("A
 
 private val CITY_ID: Int = System.getenv("CITY_ID").toIntOrNull() ?: throw Exception("CITY_ID not set")
 
+private val WAKE_TIME: LocalTime = LocalTime.parse(System.getenv("WAKE_TIME") ?: throw Exception("WAKE_TIME not set"))
+
+private val YEELIGHT_HOST: String = System.getenv("YEELIGHT_HOST") ?: throw Exception("YEELIGHT_HOST not set")
+
 private val API_ADVISOR: ApiAdvisor = run {
     val moshi = Moshi.Builder()
         .add(LocalDateAdapter)
@@ -37,7 +41,7 @@ private val API_ADVISOR: ApiAdvisor = run {
 
 suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
     .filterNot { it.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY) }
-    .map(LocalTime.of(6, 0)::atDate)
+    .map(WAKE_TIME::atDate)
     .filter(LocalDateTime.now()::isBefore)
     .onEach { println("next: $it") }
     .map { ChronoUnit.MILLIS.between(LocalDateTime.now(), it) }
@@ -50,11 +54,12 @@ suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
             val today = forecast.data.first { it.date == LocalDate.now() }
             today.rain.precipitation > 0
         } catch (e: Throwable) {
+            println("error accessing weather api: ${e.message ?: e}")
             null
         }
         println("will rain: $willRain")
 
-        val yeelightDevice = YeelightDevice(host = "luz-mesa")
+        val yeelightDevice = YeelightDevice(YEELIGHT_HOST)
         yeelightDevice.use {
             val color = when (willRain) {
                 true -> 0x0000FF

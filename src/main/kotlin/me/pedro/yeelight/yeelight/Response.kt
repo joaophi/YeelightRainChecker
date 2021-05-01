@@ -20,3 +20,8 @@ data class ErrorResult(
     override val id: Int,
     val error: Error,
 ) : Result(id)
+
+data class Error(
+    val code: Int,
+    override val message: String,
+) : Throwable(message)

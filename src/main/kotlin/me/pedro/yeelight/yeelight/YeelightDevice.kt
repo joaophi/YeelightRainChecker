@@ -11,9 +11,6 @@ import java.io.Closeable
 import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
-fun <V> Flow<Properties>.filter(property: Property<V>): Flow<V> =
-    mapNotNull { it[property] }
-
 class YeelightDevice(
     private val socket: Socket
 ) : Closeable {
