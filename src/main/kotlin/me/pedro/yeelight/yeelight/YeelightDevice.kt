@@ -12,7 +12,8 @@ import java.net.Socket
 import java.util.concurrent.atomic.AtomicInteger
 
 class YeelightDevice(
-    private val socket: Socket
+    private val socket: Socket,
+    private val musicMode: Boolean = false,
 ) : Closeable {
     constructor(host: String, port: Int = 55443) : this(Socket(host, port))
 
@@ -58,12 +59,22 @@ class YeelightDevice(
             sink.writeString("\r\n", Charsets.UTF_8)
             sink.flush()
 
-            val response = response
-                .filterIsInstance<Result>()
-                .first { it.id == id }
-            when (response) {
-                is SuccessResult -> command.parseResult(response.result)
-                is ErrorResult -> throw response.error
+            @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
+            when {
+                musicMode -> when (command) {
+                    is Command.CronGet -> emptyList<Cron>()
+                    is Command.GetProp -> Properties(emptyMap())
+                    else -> true
+                } as R
+                else -> {
+                    val response = response
+                        .filterIsInstance<Result>()
+                        .first { it.id == id }
+                    when (response) {
+                        is SuccessResult -> command.parseResult(response.result)
+                        is ErrorResult -> throw response.error
+                    }
+                }
             }
         }
 

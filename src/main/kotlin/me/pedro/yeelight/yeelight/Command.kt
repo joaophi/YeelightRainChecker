@@ -6,14 +6,6 @@ sealed class Command<R : Any>(val method: String) {
     @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
     open fun parseResult(result: List<Any>): R = when (val first = result.firstOrNull()) {
         is String -> first == "ok"
-        is Map<*, *> -> {
-            val map = first.mapValues { (it.value as Double).toInt() }
-            Cron(
-                type = CronType.values().first { it.value == map["type"]!! },
-                delay = map["delay"]!!,
-                mix = map["mix"]!!,
-            )
-        }
         else -> throw Exception("cannot parse result: '$result'")
     } as R
 
@@ -22,8 +14,12 @@ sealed class Command<R : Any>(val method: String) {
         override val params: List<Any> get() = listOf(type.value, minutes)
     }
 
-    data class CronGet(val type: CronType = CronType.POWER_OFF) : Command<Any>(method = "cron_get") {
+    data class CronGet(val type: CronType = CronType.POWER_OFF) : Command<List<Cron>>(method = "cron_get") {
         override val params: List<Any> get() = listOf(type.value)
+
+        override fun parseResult(result: List<Any>): List<Cron> = result
+            .filterIsInstance<Map<String, Double>>()
+            .map(::Cron)
     }
 
     data class CronDel(val type: CronType = CronType.POWER_OFF) : Command<Boolean>(method = "cron_del") {
@@ -62,8 +58,11 @@ sealed class Command<R : Any>(val method: String) {
         override val params: List<Any> get() = listOfNotNull(scene.clazz, scene.val1, scene.val2, scene.val3)
     }
 
-    data class StartCF(val count: Int, val onFinish: OnCFFinish, val actions: List<CFAction>) :
-        Command<Boolean>(method = "start_cf") {
+    data class StartCF(
+        val count: Int = 0,
+        val onFinish: OnCFFinish = OnCFFinish.KEEP_STATE,
+        val actions: List<CFAction>,
+    ) : Command<Boolean>(method = "start_cf") {
         constructor(count: Int = 0, onFinish: OnCFFinish = OnCFFinish.KEEP_STATE, vararg actions: CFAction) :
                 this(count, onFinish, actions.toList())
 
