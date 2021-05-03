@@ -51,13 +51,13 @@ suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
         println("running")
         val willRain = try {
             val start = LocalDate.now().atTime(WAKE_TIME)
-            val end = LocalDate.now().atTime(17, 0)
+            val end = LocalDate.now().atTime(18, 0)
             API_ADVISOR
                 .getForecast(CITY_ID, API_TOKEN)
                 .data
                 .asSequence()
                 .filter { it.date in start..end }
-                .any { (_, rain) -> rain.precipitation > 0 }
+                .any { it.rain.precipitation > 0 }
         } catch (e: Throwable) {
             println("error accessing weather api: ${e.message ?: e}")
             null
@@ -68,7 +68,7 @@ suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
         yeelightDevice.use {
             val color = when (willRain) {
                 true -> 0x0000FF
-                false -> 0x00FF00
+                false -> 0xFFFF00
                 null -> 0xFF0000
             }
 
