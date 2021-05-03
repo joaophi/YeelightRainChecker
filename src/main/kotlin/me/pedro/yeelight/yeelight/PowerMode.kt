@@ -6,5 +6,6 @@ enum class PowerMode(val value: Int) {
     RGB(value = 2),
     HSV(value = 3),
     CF(value = 4),
-    NIGHT(value = 5);
+    NIGHT(value = 5),
+    ;
 }

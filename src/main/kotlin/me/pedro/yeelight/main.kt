@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import me.pedro.yeelight.advisor.ApiAdvisor
-import me.pedro.yeelight.advisor.LocalDateAdapter
+import me.pedro.yeelight.advisor.LocalDateTimeAdapter
 import me.pedro.yeelight.yeelight.*
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -28,7 +28,7 @@ private val YEELIGHT_HOST: String = System.getenv("YEELIGHT_HOST") ?: throw Exce
 
 private val API_ADVISOR: ApiAdvisor = run {
     val moshi = Moshi.Builder()
-        .add(LocalDateAdapter)
+        .add(LocalDateTimeAdapter)
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -50,9 +50,14 @@ suspend fun main(): Unit = generateSequence(LocalDate.now()) { it.plusDays(1) }
     .onEach {
         println("running")
         val willRain = try {
-            val forecast = API_ADVISOR.getForecast(CITY_ID, API_TOKEN)
-            val today = forecast.data.first { it.date == LocalDate.now() }
-            today.rain.precipitation > 0
+            val start = LocalDate.now().atTime(WAKE_TIME)
+            val end = LocalDate.now().atTime(17, 0)
+            API_ADVISOR
+                .getForecast(CITY_ID, API_TOKEN)
+                .data
+                .asSequence()
+                .filter { it.date in start..end }
+                .any { (_, rain) -> rain.precipitation > 0 }
         } catch (e: Throwable) {
             println("error accessing weather api: ${e.message ?: e}")
             null
