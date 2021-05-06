@@ -1,5 +1,6 @@
 package me.pedro.yeelight
 
+import com.github.joaophi.yeelight.*
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
@@ -8,7 +9,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import me.pedro.yeelight.advisor.ApiAdvisor
 import me.pedro.yeelight.advisor.LocalDateTimeAdapter
-import me.pedro.yeelight.yeelight.*
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.create

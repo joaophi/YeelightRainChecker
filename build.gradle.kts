@@ -1,8 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.32"
-    kotlin("kapt") version "1.4.32"
+    kotlin("jvm") version "1.5.0"
+    kotlin("kapt") version "1.5.0"
+    application
 }
 
 group = "me.pedro"
@@ -10,6 +11,14 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/joaophi/*")
+        credentials {
+            username = project.findProperty("github.actor")?.toString() ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("github.token")?.toString() ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -23,10 +32,16 @@ dependencies {
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+
+    implementation("com.github.joaophi:yeelight:0.1")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+application {
+    mainClass.set("me.pedro.yeelight.MainKt")
 }
 
 tasks.withType<Jar> {
